@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "queue": "c",
+        "random": "c",
+        "stdint.h": "c"
+    }
+}
