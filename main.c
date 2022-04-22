@@ -20,11 +20,11 @@ void fill_matrix(matrix_t* matrix, int rows, int cols)
 
 int main(int argc, char* argv[])
 {
-    start_bump_pool = malloc(32 * 1024 * 1024);
+    start_bump_pool = malloc(1024 * 1024 * 1024);
     bump_pool = start_bump_pool;
 
-    matrix_t* a = create_matrix(8, 8);
-    matrix_t* b = create_matrix(8, 4);
+    matrix_t* a = create_matrix(64, 64);
+    matrix_t* b = create_matrix(64, 64);
     matrix_t* res_a_b;
 
     fill_matrix(a, 8, 8);

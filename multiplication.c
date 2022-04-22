@@ -60,7 +60,9 @@ void copy_matrix_quadrants_out(
     }
 }
 
-matrix_t* matrix_multiply(matrix_t* a, matrix_t* b)
+__attribute__((optimize(0)))
+matrix_t*
+matrix_multiply(matrix_t* a, matrix_t* b)
 {
     int rounded_rows_a = round_up_to_nearest_power_of_2(a->num_rows);
     int rounded_cols_a = round_up_to_nearest_power_of_2(a->num_cols);
@@ -159,7 +161,7 @@ void matrix_multiply_recursive_strassen(matrix_t* a, matrix_t* b, matrix_t* c)
      *
      * Strap yourself in, this is gonna get really hairy.
      *
-     * Implementation lifted from:
+     * Implementation is STRASSEN1 lifted from:
      * S. Huss-Lederman, E. M. Jacobson, J. R. Johnson, A. Tsao, and T. Turnbull. Strassen's
      * algorithm for matrix multiplication: Modeling, analysis, and implementation. Technical
      * report, Center for Computing Sciences, 1996. Technical Report CCS-TR-96-147.
@@ -168,519 +170,79 @@ void matrix_multiply_recursive_strassen(matrix_t* a, matrix_t* b, matrix_t* c)
 
     // 1
     matrix_t* r1 = create_matrix(a11->num_rows, fmax(b11->num_rows, b11->num_cols));
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("1 PRIOR <----------------------->\n");
-    print_matrix(a11);
-    printf("a11 has size %d-%d\n", a11->num_rows, a11->num_cols);
-    print_matrix(a21);
-    printf("a21 has size %d-%d\n", a21->num_rows, a21->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("1 PRIOR <----------------------->\n");
-#endif
     subtract_matrix(a11, a21, r1);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("1 <----------------------->\n");
-    print_matrix(a11);
-    printf("a11 has size %d-%d\n", a11->num_rows, a11->num_cols);
-    print_matrix(a21);
-    printf("a21 has size %d-%d\n", a21->num_rows, a21->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("1 <----------------------->\n");
-#endif
 
     // 2
     matrix_t* r2 = create_matrix(b22->num_rows, b22->num_cols);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("2 PRIOR <----------------------->\n");
-    print_matrix(b22);
-    printf("b22 has size %d-%d\n", b22->num_rows, b22->num_cols);
-    print_matrix(b12);
-    printf("b12 has size %d-%d\n", b12->num_rows, b12->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    printf("2 PRIOR <----------------------->\n");
-#endif
     subtract_matrix(b22, b12, r2);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("2 <----------------------->\n");
-    print_matrix(b22);
-    printf("b22 has size %d-%d\n", b22->num_rows, b22->num_cols);
-    print_matrix(b12);
-    printf("b12 has size %d-%d\n", b12->num_rows, b12->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    printf("2 <----------------------->\n");
-#endif
 
     // 3
     matrix_t* r3 = create_matrix(r1->num_rows, r2->num_cols);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("3 PRIOR <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r3);
-    printf("r3 has size %d-%d\n", r3->num_rows, r3->num_cols);
-    printf("3 PRIOR <----------------------->\n");
-#endif
     multiply(r1, r2, r3);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("3 <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r3);
-    printf("r3 has size %d-%d\n", r3->num_rows, r3->num_cols);
-    printf("3 <----------------------->\n");
-#endif
 
     // 4
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("4 PRIOR <----------------------->\n");
-    print_matrix(a21);
-    printf("a21 has size %d-%d\n", a21->num_rows, a21->num_cols);
-    print_matrix(a22);
-    printf("a22 has size %d-%d\n", a22->num_rows, a22->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("4 PRIOR <----------------------->\n");
-#endif
     add_matrix(a21, a22, r1);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("4 <----------------------->\n");
-    print_matrix(a21);
-    printf("a21 has size %d-%d\n", a21->num_rows, a21->num_cols);
-    print_matrix(a22);
-    printf("a22 has size %d-%d\n", a22->num_rows, a22->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("4 <----------------------->\n");
-#endif
 
     // 5
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("5 PRIOR <----------------------->\n");
-    print_matrix(b12);
-    printf("b12 has size %d-%d\n", b12->num_rows, b12->num_cols);
-    print_matrix(b11);
-    printf("b11 has size %d-%d\n", b11->num_rows, b11->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    printf("5 PRIOR <----------------------->\n");
-#endif
     subtract_matrix(b12, b11, r2);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("5 <----------------------->\n");
-    print_matrix(b12);
-    printf("b12 has size %d-%d\n", b12->num_rows, b12->num_cols);
-    print_matrix(b11);
-    printf("b11 has size %d-%d\n", b11->num_rows, b11->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    printf("5 <----------------------->\n");
-#endif
 
     // 6
     matrix_t* r4 = create_matrix(r1->num_rows, r2->num_cols);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("6 PRIOR <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r4);
-    printf("r4 has size %d-%d\n", r4->num_rows, r4->num_cols);
-    printf("6 PRIOR <----------------------->\n");
-#endif
     multiply(r1, r2, r4);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("6 <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r4);
-    printf("r4 has size %d-%d\n", r4->num_rows, r4->num_cols);
-    printf("6 <----------------------->\n");
-#endif
 
     // 7
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("7 PRIOR <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(a11);
-    printf("a11 has size %d-%d\n", a11->num_rows, a11->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("7 PRIOR <----------------------->\n");
-#endif
     subtract_matrix(r1, a11, r1);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("7 <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(a11);
-    printf("a11 has size %d-%d\n", a11->num_rows, a11->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("7 <----------------------->\n");
-#endif
 
     // 8
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("8 PRIOR <----------------------->\n");
-    print_matrix(b22);
-    printf("b22 has size %d-%d\n", b22->num_rows, b22->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    printf("8 PRIOR <----------------------->\n");
-#endif
     subtract_matrix(b22, r2, r2);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("8 <----------------------->\n");
-    print_matrix(b22);
-    printf("b22 has size %d-%d\n", b22->num_rows, b22->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    printf("8 <----------------------->\n");
-#endif
 
     // 9
     matrix_t* r5 = create_matrix(r1->num_rows, r2->num_cols);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("9 PRIOR <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    printf("9 PRIOR <----------------------->\n");
-#endif
     multiply(r1, r2, r5);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("9 <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    printf("9 <----------------------->\n");
-#endif
 
     // 10
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("10 PRIOR <----------------------->\n");
-    print_matrix(a12);
-    printf("a12 has size %d-%d\n", a12->num_rows, a12->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("10 PRIOR <----------------------->\n");
-#endif
     subtract_matrix(a12, r1, r1);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("10 <----------------------->\n");
-    print_matrix(a12);
-    printf("a12 has size %d-%d\n", a12->num_rows, a12->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("10 <----------------------->\n");
-#endif
 
     // 11
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("11 PRIOR <----------------------->\n");
-    print_matrix(b21);
-    printf("b21 has size %d-%d\n", b21->num_rows, b21->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    printf("11 PRIOR <----------------------->\n");
-#endif
     subtract_matrix(b21, r2, r2);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("11 <----------------------->\n");
-    print_matrix(b21);
-    printf("b21 has size %d-%d\n", b21->num_rows, b21->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    printf("11 <----------------------->\n");
-#endif
 
     // 12
     matrix_t* r6 = create_matrix(a22->num_rows, b22->num_cols);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("12 PRIOR <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(b22);
-    printf("b22 has size %d-%d\n", b22->num_rows, b22->num_cols);
-    print_matrix(r6);
-    printf("r6 has size %d-%d\n", r6->num_rows, r6->num_cols);
-    printf("12 PRIOR <----------------------->\n");
-#endif
     multiply(r1, b22, r6);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("12 <----------------------->\n");
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(b22);
-    printf("b22 has size %d-%d\n", b22->num_rows, b22->num_cols);
-    print_matrix(r6);
-    printf("r6 has size %d-%d\n", r6->num_rows, r6->num_cols);
-    printf("12 <----------------------->\n");
-#endif
 
     // 13
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("13 PRIOR <----------------------->\n");
-    print_matrix(r6);
-    printf("r6 has size %d-%d\n", r6->num_rows, r6->num_cols);
-    print_matrix(r4);
-    printf("r4 has size %d-%d\n", r4->num_rows, r4->num_cols);
-    print_matrix(r6);
-    printf("r6 has size %d-%d\n", r6->num_rows, r6->num_cols);
-    printf("13 PRIOR <----------------------->\n");
-#endif
     add_matrix(r6, r4, r6);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("13 <----------------------->\n");
-    print_matrix(r6);
-    printf("r6 has size %d-%d\n", r6->num_rows, r6->num_cols);
-    print_matrix(r4);
-    printf("r4 has size %d-%d\n", r4->num_rows, r4->num_cols);
-    print_matrix(r6);
-    printf("r6 has size %d-%d\n", r6->num_rows, r6->num_cols);
-    printf("13 <----------------------->\n");
-#endif
 
     // 14
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("14 PRIOR <----------------------->\n");
-    print_matrix(a11);
-    printf("a11 has size %d-%d\n", a11->num_rows, a11->num_cols);
-    print_matrix(b11);
-    printf("b11 has size %d-%d\n", b11->num_rows, b11->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("14 PRIOR <----------------------->\n");
-#endif
     multiply(a11, b11, r1);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("14 <----------------------->\n");
-    print_matrix(a11);
-    printf("a11 has size %d-%d\n", a11->num_rows, a11->num_cols);
-    print_matrix(b11);
-    printf("b11 has size %d-%d\n", b11->num_rows, b11->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("14 <----------------------->\n");
-#endif
 
     // 15
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("15 PRIOR <----------------------->\n");
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    printf("15 PRIOR <----------------------->\n");
-#endif
     add_matrix(r5, r1, r5);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("15 <----------------------->\n");
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    printf("15 <----------------------->\n");
-#endif
 
     // 16
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("16 PRIOR <----------------------->\n");
-    print_matrix(r6);
-    printf("r6 has size %d-%d\n", r6->num_rows, r6->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(c12);
-    printf("c12 has size %d-%d\n", c12->num_rows, c12->num_cols);
-    printf("16 PRIOR <----------------------->\n");
-#endif
     add_matrix(r6, r5, r6);
     add_matrix(r6, c12, r6);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("16 <----------------------->\n");
-    print_matrix(r6);
-    printf("r6 has size %d-%d\n", r6->num_rows, r6->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(c12);
-    printf("c12 has size %d-%d\n", c12->num_rows, c12->num_cols);
-    printf("16 <----------------------->\n");
-#endif
 
     // 17
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("17 PRIOR <----------------------->\n");
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(r3);
-    printf("r3 has size %d-%d\n", r3->num_rows, r3->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    printf("17 PRIOR <----------------------->\n");
-#endif
     add_matrix(r5, r3, r5);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("17 <----------------------->\n");
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(r3);
-    printf("r3 has size %d-%d\n", r3->num_rows, r3->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    printf("17 <----------------------->\n");
-#endif
 
     // 18
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("18 PRIOR <----------------------->\n");
-    print_matrix(r4);
-    printf("r4 has size %d-%d\n", r4->num_rows, r4->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(c22);
-    printf("c22 has size %d-%d\n", c22->num_rows, c22->num_cols);
-    printf("18 PRIOR <----------------------->\n");
-#endif
     add_matrix(r4, r5, r4);
     add_matrix(r4, c22, r4);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("18 <----------------------->\n");
-    print_matrix(r4);
-    printf("r4 has size %d-%d\n", r4->num_rows, r4->num_cols);
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(c22);
-    printf("c22 has size %d-%d\n", c22->num_rows, c22->num_cols);
-    printf("18 <----------------------->\n");
-#endif
 
     // 19
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("19 PRIOR <----------------------->\n");
-    print_matrix(a12);
-    printf("a12 has size %d-%d\n", a12->num_rows, a12->num_cols);
-    print_matrix(b21);
-    printf("b21 has size %d-%d\n", b21->num_rows, b21->num_cols);
-    print_matrix(r3);
-    printf("r3 has size %d-%d\n", r3->num_rows, r3->num_cols);
-    printf("19 PRIOR <----------------------->\n");
-#endif
     multiply(a12, b21, r3);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("19 <----------------------->\n");
-    print_matrix(a12);
-    printf("a12 has size %d-%d\n", a12->num_rows, a12->num_cols);
-    print_matrix(b21);
-    printf("b21 has size %d-%d\n", b21->num_rows, b21->num_cols);
-    print_matrix(r3);
-    printf("r3 has size %d-%d\n", r3->num_rows, r3->num_cols);
-    printf("19 <----------------------->\n");
-#endif
 
     // 20
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("20 PRIOR <----------------------->\n");
-    print_matrix(r3);
-    printf("r3 has size %d-%d\n", r3->num_rows, r3->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(c11);
-    printf("c11 has size %d-%d\n", c11->num_rows, c11->num_cols);
-    printf("20 PRIOR <----------------------->\n");
-#endif
     add_matrix(r3, r1, r3);
     add_matrix(r3, c11, r3);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("20 <----------------------->\n");
-    print_matrix(r3);
-    printf("r3 has size %d-%d\n", r3->num_rows, r3->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(c11);
-    printf("c11 has size %d-%d\n", c11->num_rows, c11->num_cols);
-    printf("20 <----------------------->\n");
-#endif
 
     // 21
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("21 PRIOR <----------------------->\n");
-    print_matrix(a22);
-    printf("a22 has size %d-%d\n", a22->num_rows, a22->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("21 PRIOR <----------------------->\n");
-#endif
     multiply(a22, r2, r1);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("21 <----------------------->\n");
-    print_matrix(a22);
-    printf("a22 has size %d-%d\n", a22->num_rows, a22->num_cols);
-    print_matrix(r2);
-    printf("r2 has size %d-%d\n", r2->num_rows, r2->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    printf("21 <----------------------->\n");
-#endif
 
     // 22
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("22 PRIOR <----------------------->\n");
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(c21);
-    printf("c21 has size %d-%d\n", c21->num_rows, c21->num_cols);
-    printf("22 PRIOR <----------------------->\n");
-#endif
     add_matrix(r5, r1, r5);
     add_matrix(r5, c21, r5);
-#ifdef DEBUG_TRANSFORMATIONS
-    printf("22 <----------------------->\n");
-    print_matrix(r5);
-    printf("r5 has size %d-%d\n", r5->num_rows, r5->num_cols);
-    print_matrix(r1);
-    printf("r1 has size %d-%d\n", r1->num_rows, r1->num_cols);
-    print_matrix(c21);
-    printf("c21 has size %d-%d\n", c21->num_rows, c21->num_cols);
-    printf("22 <----------------------->\n");
-#endif
 
     copy_matrix_quadrants_out(r3, r6, r5, r4, c);
 
