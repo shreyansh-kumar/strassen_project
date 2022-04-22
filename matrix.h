@@ -8,12 +8,11 @@
 typedef short scalar_t;
 
 typedef struct matrix {
-    int num_rows;
-    int num_cols;
+    int num_cols_rows;
     scalar_t* matrix;
 } matrix_t;
 
-matrix_t* create_matrix(int rows, int cols);
+matrix_t* create_matrix(int size);
 void delete_matrix(matrix_t* matrix);
 void copy_matrix(matrix_t* src, matrix_t* dest);
 
