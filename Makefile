@@ -1,5 +1,5 @@
-CC = gcc-11
-LD = gcc-11
+CC = gcc
+LD = gcc
 
 MATRIX_SOURCE  =multiplication.c
 MATRIX_SOURCE +=main.c
@@ -9,7 +9,7 @@ MATRIX_OBJECTS = $(addsuffix .o,$(basename $(MATRIX_SOURCE)))
 
 MATRIX_TARGET = MatrixMultiplication
 
-MATRIX_CFLAGS  =-Wall -std=c17 -g -O0 $(CFLAGS)#-DDEBUG_TRANSFORMATIONS #-fsanitize=unsigned-integer-overflow -fno-sanitize-recover=unsigned-integer-overflow 
+MATRIX_CFLAGS  =-Wall -std=c17 -g -O0 $(CFLAGS)#-fsanitize=unsigned-integer-overflow -fno-sanitize-recover=unsigned-integer-overflow 
 MATRIX_LDFLAGS =-g -O0 $(LDFLAGS)#-fsanitize=unsigned-integer-overflow -fno-sanitize-recover=unsigned-integer-overflow 
 
 all : MatrixImplementation

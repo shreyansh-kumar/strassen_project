@@ -1,9 +1,6 @@
 #include "matrix.h"
 #include "multiplication.h"
 
-static void* start_bump_pool;
-void* bump_pool;
-
 void fill_matrix(matrix_t* matrix, int rows, int cols)
 {
     scalar_t val = 0;
@@ -20,9 +17,6 @@ void fill_matrix(matrix_t* matrix, int rows, int cols)
 
 int main(int argc, char* argv[])
 {
-    start_bump_pool = malloc(1024 * 1024 * 1024);
-    bump_pool = start_bump_pool;
-
     matrix_t* a = create_matrix(64, 64);
     matrix_t* b = create_matrix(64, 64);
     matrix_t* res_a_b;
@@ -42,8 +36,6 @@ int main(int argc, char* argv[])
     delete_matrix(a);
     delete_matrix(b);
     delete_matrix(res_a_b);
-
-    free(start_bump_pool);
 
     return 0;
 }
