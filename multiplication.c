@@ -5,6 +5,9 @@
 
 #define USEC_PER_SEC 1000000
 
+size_t max_stack_location;
+size_t min_stack_location;
+
 static void copy_matrix_quadrants(
     matrix_t* src,
     matrix_t* src11,
@@ -19,10 +22,13 @@ static void copy_matrix_quadrants_out(
     matrix_t* src22,
     matrix_t* dest);
 
-matrix_t*
-matrix_multiply(matrix_t* a, matrix_t* b, int k)
+matrix_t* matrix_multiply(matrix_t* a, matrix_t* b, int k)
 {
     matrix_t* c = create_matrix(a->num_cols_rows);
+
+    // Find the start of the stack space used (on x86, the stack grows down)
+    max_stack_location = (size_t)&a;
+    min_stack_location = max_stack_location;
 
     /*
      * Ok so there's a caveat here, since we fork, this doesn't return
@@ -33,7 +39,7 @@ matrix_multiply(matrix_t* a, matrix_t* b, int k)
      */
     int child = fork();
     if (child == 0) {
-        matrix_multiply_iterative(a, b, c);
+        matrix_multiply_recursive_strassen(a, b, c, k);
 
         struct rusage usage;
 
@@ -42,10 +48,18 @@ matrix_multiply(matrix_t* a, matrix_t* b, int k)
         size_t cpu_time_used_seconds_in_usec = (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * USEC_PER_SEC;
         size_t cpu_total_time_used_usec = cpu_time_used_seconds_in_usec + usage.ru_utime.tv_usec + usage.ru_stime.tv_usec;
 
-        printf("c->num_cols_rows: %d -- k value: %d -- cpu_total_time_used_usec: %zu\n",
+        size_t total_stack_space_used_bytes = max_stack_location - min_stack_location;
+
+        printf("c->num_cols_rows: %d -- k value: %d -- cpu_total_time_used_usec: %zu, total_stack_space_used_bytes: %zu\n",
             c->num_cols_rows,
             k,
-            cpu_total_time_used_usec);
+            cpu_total_time_used_usec,
+            total_stack_space_used_bytes);
+
+        // Avoid any memory leaks
+        delete_matrix(a);
+        delete_matrix(b);
+        delete_matrix(c);
 
         exit(EXIT_SUCCESS);
     } else {
@@ -57,6 +71,11 @@ matrix_multiply(matrix_t* a, matrix_t* b, int k)
 
 void matrix_multiply_iterative(matrix_t* a, matrix_t* b, matrix_t* c)
 {
+    // Figure out how much stack space we're currently using
+    size_t curr_stack_location = (size_t)&c;
+    if (curr_stack_location < min_stack_location)
+        min_stack_location = curr_stack_location;
+
     for (int y = 0; y < c->num_cols_rows; y++) {
         for (int x = 0; x < c->num_cols_rows; x++) {
             scalar_t val = 0;
@@ -70,8 +89,7 @@ void matrix_multiply_iterative(matrix_t* a, matrix_t* b, matrix_t* c)
 
 void matrix_multiply_recursive_strassen(matrix_t* a, matrix_t* b, matrix_t* c, int k)
 {
-    if (
-        (a->num_cols_rows <= k && a->num_cols_rows <= k) || (b->num_cols_rows <= k && b->num_cols_rows <= k)) {
+    if ((a->num_cols_rows <= k && a->num_cols_rows <= k) || (b->num_cols_rows <= k && b->num_cols_rows <= k)) {
         matrix_multiply_iterative(a, b, c);
         return;
     }
