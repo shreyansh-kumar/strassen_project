@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
 #endif
 
     // If you want to perform a SAM instead of a SAMk, set k to 1
+    // If you want to perform a BAM, switch SAM to BAM and vice versa
     res_a_b = matrix_multiply(a, b, SAM, k);
 #if 0
     printf("\na * b:\n");

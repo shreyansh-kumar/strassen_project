@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef short scalar_t;
+typedef int scalar_t;
 
 typedef struct matrix {
     int num_cols_rows;
