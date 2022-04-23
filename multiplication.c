@@ -24,6 +24,9 @@ static void copy_matrix_quadrants_out(
 
 matrix_t* matrix_multiply(matrix_t* a, matrix_t* b, int k)
 {
+    // Sanity check that the matrices are compatible
+    assert(a->num_cols_rows == b->num_cols_rows);
+
     matrix_t* c = create_matrix(a->num_cols_rows);
 
     // Find the start of the stack space used (on x86, the stack grows down)
