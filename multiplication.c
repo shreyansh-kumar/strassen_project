@@ -1,4 +1,9 @@
 #include "multiplication.h"
+#include <sys/resource.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#define USEC_PER_SEC 1000000
 
 static void copy_matrix_quadrants(
     matrix_t* src,
@@ -18,7 +23,34 @@ matrix_t*
 matrix_multiply(matrix_t* a, matrix_t* b, int k)
 {
     matrix_t* c = create_matrix(a->num_cols_rows);
-    matrix_multiply_recursive_strassen(a, b, c, k);
+
+    /*
+     * Ok so there's a caveat here, since we fork, this doesn't return
+     * the matrix c to the parent process. Normally this would be a big
+     * deal, but we aren't actually gonna use matrix c for anything, we're
+     * purely just trying to measure the time and space. As such, we can just
+     * safely discard c and just return a blank matrix back to the parent process
+     */
+    int child = fork();
+    if (child == 0) {
+        matrix_multiply_iterative(a, b, c);
+
+        struct rusage usage;
+
+        assert(getrusage(RUSAGE_SELF, &usage) == 0);
+
+        size_t cpu_time_used_seconds_in_usec = (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * USEC_PER_SEC;
+        size_t cpu_total_time_used_usec = cpu_time_used_seconds_in_usec + usage.ru_utime.tv_usec + usage.ru_stime.tv_usec;
+
+        printf("c->num_cols_rows: %d -- k value: %d -- cpu_total_time_used_usec: %zu\n",
+            c->num_cols_rows,
+            k,
+            cpu_total_time_used_usec);
+
+        exit(EXIT_SUCCESS);
+    } else {
+        wait(NULL);
+    }
 
     return c;
 }
