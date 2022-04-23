@@ -5,21 +5,26 @@ static void fill_matrix(matrix_t* matrix, int rows, int cols);
 
 int main(int argc, char* argv[])
 {
-    matrix_t* a = create_matrix(64);
-    matrix_t* b = create_matrix(64);
+    const int k = 16;
+    matrix_t* a = create_matrix(1024);
+    matrix_t* b = create_matrix(1024);
     matrix_t* res_a_b;
 
     fill_matrix(a, 8, 8);
     fill_matrix(b, 8, 4);
 
+#if 0
     printf("a:\n");
     print_matrix(a);
     printf("\nb:\n");
     print_matrix(b);
+#endif
 
-    res_a_b = matrix_multiply(a, b);
+    res_a_b = matrix_multiply(a, b, k);
+#if 0
     printf("\na * b:\n");
     print_matrix(res_a_b);
+#endif
 
     delete_matrix(a);
     delete_matrix(b);

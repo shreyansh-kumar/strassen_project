@@ -15,10 +15,10 @@ static void copy_matrix_quadrants_out(
     matrix_t* dest);
 
 matrix_t*
-matrix_multiply(matrix_t* a, matrix_t* b)
+matrix_multiply(matrix_t* a, matrix_t* b, int k)
 {
     matrix_t* c = create_matrix(a->num_cols_rows);
-    matrix_multiply_recursive_strassen(a, b, c);
+    matrix_multiply_recursive_strassen(a, b, c, k);
 
     return c;
 }
@@ -36,10 +36,10 @@ void matrix_multiply_iterative(matrix_t* a, matrix_t* b, matrix_t* c)
     }
 }
 
-void matrix_multiply_recursive_strassen(matrix_t* a, matrix_t* b, matrix_t* c)
+void matrix_multiply_recursive_strassen(matrix_t* a, matrix_t* b, matrix_t* c, int k)
 {
     if (
-        (a->num_cols_rows <= 16 && a->num_cols_rows <= 16) || (b->num_cols_rows <= 16 && b->num_cols_rows <= 16)) {
+        (a->num_cols_rows <= k && a->num_cols_rows <= k) || (b->num_cols_rows <= k && b->num_cols_rows <= k)) {
         matrix_multiply_iterative(a, b, c);
         return;
     }
@@ -95,25 +95,25 @@ void matrix_multiply_recursive_strassen(matrix_t* a, matrix_t* b, matrix_t* c)
     add_matrix(b11, b12, s10);
 
     matrix_t* p1 = create_matrix(matrix_quad_size);
-    matrix_multiply_recursive_strassen(a11, s1, p1);
+    matrix_multiply_recursive_strassen(a11, s1, p1, k);
 
     matrix_t* p2 = create_matrix(matrix_quad_size);
-    matrix_multiply_recursive_strassen(s2, b22, p2);
+    matrix_multiply_recursive_strassen(s2, b22, p2, k);
 
     matrix_t* p3 = create_matrix(matrix_quad_size);
-    matrix_multiply_recursive_strassen(s3, b11, p3);
+    matrix_multiply_recursive_strassen(s3, b11, p3, k);
 
     matrix_t* p4 = create_matrix(matrix_quad_size);
-    matrix_multiply_recursive_strassen(a22, s4, p4);
+    matrix_multiply_recursive_strassen(a22, s4, p4, k);
 
     matrix_t* p5 = create_matrix(matrix_quad_size);
-    matrix_multiply_recursive_strassen(s5, s6, p5);
+    matrix_multiply_recursive_strassen(s5, s6, p5, k);
 
     matrix_t* p6 = create_matrix(matrix_quad_size);
-    matrix_multiply_recursive_strassen(s7, s8, p6);
+    matrix_multiply_recursive_strassen(s7, s8, p6, k);
 
     matrix_t* p7 = create_matrix(matrix_quad_size);
-    matrix_multiply_recursive_strassen(s9, s10, p7);
+    matrix_multiply_recursive_strassen(s9, s10, p7, k);
 
     add_matrix(p5, p4, c11);
     subtract_matrix(c11, p2, c11);
