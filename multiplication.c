@@ -89,7 +89,7 @@ void matrix_multiply_iterative(matrix_t* a, matrix_t* b, matrix_t* c)
 
 void matrix_multiply_recursive_strassen(matrix_t* a, matrix_t* b, matrix_t* c, int k)
 {
-    if ((a->num_cols_rows <= k && a->num_cols_rows <= k) || (b->num_cols_rows <= k && b->num_cols_rows <= k)) {
+    if (a->num_cols_rows <= k || b->num_cols_rows <= k) {
         matrix_multiply_iterative(a, b, c);
         return;
     }
