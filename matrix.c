@@ -1,10 +1,19 @@
 #include "matrix.h"
 
+extern size_t max_heap_space_used_bytes;
+extern size_t current_heap_space_used_bytes;
+
 matrix_t* create_matrix(int size)
 {
     matrix_t* matrix = malloc(sizeof(matrix_t));
     matrix->num_cols_rows = size;
     matrix->matrix = malloc(sizeof(scalar_t) * size * size);
+
+    current_heap_space_used_bytes += sizeof(matrix_t);
+    current_heap_space_used_bytes += (sizeof(scalar_t) * size * size);
+
+    if (current_heap_space_used_bytes > max_heap_space_used_bytes)
+        max_heap_space_used_bytes = current_heap_space_used_bytes;
 
     for (int y = 0; y < size; y++) {
         for (int x = 0; x < size; x++) {
@@ -17,6 +26,9 @@ matrix_t* create_matrix(int size)
 
 void delete_matrix(matrix_t* matrix)
 {
+    current_heap_space_used_bytes -= sizeof(matrix_t);
+    current_heap_space_used_bytes -= (sizeof(scalar_t) * matrix->num_cols_rows * matrix->num_cols_rows);
+
     free(matrix->matrix);
     free(matrix);
 }

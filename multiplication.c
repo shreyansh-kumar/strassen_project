@@ -8,6 +8,9 @@
 size_t max_stack_location;
 size_t min_stack_location;
 
+size_t max_heap_space_used_bytes = 0;
+size_t current_heap_space_used_bytes = 0;
+
 static void copy_matrix_quadrants(
     matrix_t* src,
     matrix_t* src11,
@@ -22,7 +25,7 @@ static void copy_matrix_quadrants_out(
     matrix_t* src22,
     matrix_t* dest);
 
-matrix_t* matrix_multiply(matrix_t* a, matrix_t* b, int k)
+matrix_t* matrix_multiply(matrix_t* a, matrix_t* b, enum MULT_FUNC function, int k)
 {
     // Sanity check that the matrices are compatible
     assert(a->num_cols_rows == b->num_cols_rows);
@@ -33,6 +36,10 @@ matrix_t* matrix_multiply(matrix_t* a, matrix_t* b, int k)
     max_stack_location = (size_t)&a;
     min_stack_location = max_stack_location;
 
+    // Begin tracking heap allocations
+    max_heap_space_used_bytes = 0;
+    current_heap_space_used_bytes = 0;
+
     /*
      * Ok so there's a caveat here, since we fork, this doesn't return
      * the matrix c to the parent process. Normally this would be a big
@@ -42,7 +49,14 @@ matrix_t* matrix_multiply(matrix_t* a, matrix_t* b, int k)
      */
     int child = fork();
     if (child == 0) {
-        matrix_multiply_recursive_strassen(a, b, c, k);
+        switch (function) {
+        case SAM:
+            matrix_multiply_recursive_strassen(a, b, c, k);
+            break;
+        case BAM:
+            matrix_multiply_iterative(a, b, c);
+            break;
+        };
 
         struct rusage usage;
 
@@ -50,14 +64,21 @@ matrix_t* matrix_multiply(matrix_t* a, matrix_t* b, int k)
 
         size_t cpu_time_used_seconds_in_usec = (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * USEC_PER_SEC;
         size_t cpu_total_time_used_usec = cpu_time_used_seconds_in_usec + usage.ru_utime.tv_usec + usage.ru_stime.tv_usec;
+        size_t a_io_space_used_bytes = (a->num_cols_rows * a->num_cols_rows) * sizeof(scalar_t);
+        size_t b_io_space_used_bytes = (b->num_cols_rows * b->num_cols_rows) * sizeof(scalar_t);
+        size_t c_io_space_used_bytes = (c->num_cols_rows * c->num_cols_rows) * sizeof(scalar_t);
 
         size_t total_stack_space_used_bytes = max_stack_location - min_stack_location;
+        size_t total_io_space_used_bytes = a_io_space_used_bytes + b_io_space_used_bytes + c_io_space_used_bytes;
 
-        printf("c->num_cols_rows: %d -- k value: %d -- cpu_total_time_used_usec: %zu, total_stack_space_used_bytes: %zu\n",
+        printf("c->num_cols_rows: %d -- k value: %d -- cpu_total_time_used_usec: %zu\n",
             c->num_cols_rows,
             k,
-            cpu_total_time_used_usec,
-            total_stack_space_used_bytes);
+            cpu_total_time_used_usec);
+        printf("total_stack_space_used_bytes: %zu -- total_io_space_used_bytes: %zu -- max_heap_space_used_bytes: %zu\n",
+            total_stack_space_used_bytes,
+            total_io_space_used_bytes,
+            max_heap_space_used_bytes);
 
         // Avoid any memory leaks
         delete_matrix(a);
