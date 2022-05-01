@@ -25,7 +25,6 @@ int main(int argc, char* argv[])
     // If you want to perform a BAM, switch SAM to BAM and vice versa
     for (int k = 1; k <= 1024; k *= 2) {
         res_a_b = matrix_multiply(a, b, SAM, k);
-        delete_matrix(res_a_b);
     }
 #if 0
     printf("\na * b:\n");
