@@ -7,7 +7,6 @@ static void fill_matrix(matrix_t* matrix, int rows, int cols, int seed);
 int main(int argc, char* argv[])
 {
     const int num_cols_rows = 1024;
-    const int k = 16;
     matrix_t* a = create_matrix(num_cols_rows);
     matrix_t* b = create_matrix(num_cols_rows);
     matrix_t* res_a_b;
@@ -24,7 +23,10 @@ int main(int argc, char* argv[])
 
     // If you want to perform a SAM instead of a SAMk, set k to 1
     // If you want to perform a BAM, switch SAM to BAM and vice versa
-    res_a_b = matrix_multiply(a, b, SAM, k);
+    for (int k = 1; k <= 1024; k *= 2) {
+        res_a_b = matrix_multiply(a, b, SAM, k);
+        delete_matrix(res_a_b);
+    }
 #if 0
     printf("\na * b:\n");
     print_matrix(res_a_b);
